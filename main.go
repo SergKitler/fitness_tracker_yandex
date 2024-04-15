@@ -34,6 +34,9 @@ func (t Training) distance() float64 {
 // Формула расчета:
 // преодолённая_дистанция_за_тренировку_в_км / время_тренировки_в_часах
 func (t Training) meanSpeed() float64 {
+	if t.Duration.Hours() == 0 {
+		return 0
+	}
 	return t.distance() / t.Duration.Hours()
 }
 
@@ -92,6 +95,9 @@ type Running struct {
 // ((18 * средняя_скорость_в_км/ч + 1.79) * вес_спортсмена_в_кг / м_в_км * время_тренировки_в_часах * мин_в_часе)
 // Это переопределенный метод Calories() из Training.
 func (r Running) Calories() float64 {
+	if r.Duration.Hours() == 0 {
+		return 0
+	}
 	return ((CaloriesMeanSpeedMultiplier*r.meanSpeed() + CaloriesMeanSpeedShift) * r.Weight / MInKm * r.Duration.Hours() * MinInHours)
 }
 
@@ -121,6 +127,9 @@ type Walking struct {
 // * 0.029 * вес_спортсмена_в_кг) * время_тренировки_в_часах * мин_в_ч)
 // Это переопределенный метод Calories() из Training.
 func (w Walking) Calories() float64 {
+	if w.Height == 0 {
+		return 0
+	}
 	meanSpeedSquared := math.Pow(w.meanSpeed()*KmHInMsec, 2)
 	return ((CaloriesWeightMultiplier*w.Weight + meanSpeedSquared/w.Height/CmInM) * CaloriesSpeedHeightMultiplier * w.Weight * w.Duration.Hours() * MinInHours)
 }
@@ -150,7 +159,11 @@ type Swimming struct {
 // Формула расчета:
 // длина_бассейна * количество_пересечений / м_в_км / продолжительность_тренировки
 func (s Swimming) meanSpeed() float64 {
+	if s.Duration.Hours() == 0 {
+		return 0
+	}
 	return float64(s.LengthPool) * float64(s.CountPool) / MInKm / s.Duration.Hours()
+
 }
 
 // Calories возвращает количество калорий, потраченных при плавании.
@@ -164,7 +177,8 @@ func (s Swimming) Calories() float64 {
 // TrainingInfo returns info about swimming training.
 // Это переопределенный метод TrainingInfo() из Training.
 func (s Swimming) TrainingInfo() InfoMessage {
-	return s.Training.TrainingInfo()
+	distance := float64(s.LengthPool) * float64(s.CountPool) / MInKm
+	return InfoMessage{s.TrainingType, s.Duration, distance, s.meanSpeed(), s.Calories()}
 }
 
 // ReadData возвращает информацию о проведенной тренировке.
